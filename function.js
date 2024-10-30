@@ -89,24 +89,29 @@ function generateSchedule() {
             selectedDeliveryPerson.schedule.push(new Schedule(dayString, 'Domiciliario', selectedDeliveryPerson.name));
         }
 
-        // Asignar 3 Auxiliares Farmacéuticos (AF) en total
+        // Filtrar Auxiliares Farmacéuticos disponibles
         const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
-        if (availableAF.length >= 3) {
-            // Seleccionar aleatoriamente 3 AF
-            const selectedAF = availableAF.sort(() => Math.random() - 0.5).slice(0, 3);
 
-            // Elegir uno de ellos para el turno partido
-            const indexForPartido = Math.floor(Math.random() * selectedAF.length);
-            const partidoAF = selectedAF[indexForPartido];
+        // Si hay exactamente 3 Auxiliares Farmacéuticos, asignar uno con turno partido
+        if (availableAF.length === 3) {
+            // Seleccionar aleatoriamente uno para el turno partido
+            const indexForPartido = Math.floor(Math.random() * availableAF.length);
+            const partidoAF = availableAF[indexForPartido];
 
             // Asignar el turno partido al AF seleccionado
             partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name));
 
             // Asignar turnos normales a los otros dos AF
-            selectedAF.forEach((employee, index) => {
+            availableAF.forEach((employee, index) => {
                 if (index !== indexForPartido) {
                     employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
                 }
+            });
+        } else if (availableAF.length > 3) {
+            // Si hay más de 3 AF, asignar turnos normales
+            const selectedAF = availableAF.sort(() => Math.random() - 0.5).slice(0, 3);
+            selectedAF.forEach(employee => {
+                employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
             });
         }
 
