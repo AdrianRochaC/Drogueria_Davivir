@@ -239,3 +239,9 @@ document.getElementById('saveButton').addEventListener('click', function() {
 function showConfirmation() {
     alert('El horario ha sido guardado exitosamente.');
 }
+
+
+// Function to show a confirmation message
+function showConfirmation() {
+    alert('El horario ha sido guardado exitosamente.');
+}
