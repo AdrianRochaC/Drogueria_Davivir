@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malla Horaria - Droguerías Davivir</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="img/logo_davivir.PNG" alt="Droguerías Davivir">
+        </div>
+        <h1>Malla Horaria - Droguerías Davivir</h1>
+    </header>
+
+    <main>
+        <section id="configuracion">
+            <h2>Configuración</h2>
+            <form id="configForm">
+                <label for="numEmpleados">Número de empleados:</label>
+                <input type="number" id="numEmpleados" value="8" required>
+                
+                <h3>Turnos</h3>
+                <label for="turnoDiaInicio">Turno Día - Hora de Inicio:</label>
+                <input type="time" id="turnoDiaInicio" value="07:00" required>
+        
+                <label for="turnoDiaFin">Turno Día - Hora de Fin:</label>
+                <input type="time" id="turnoDiaFin" value="15:00" required>
+        
+                <label for="turnoTardeInicio">Turno Tarde - Hora de Inicio:</label>
+                <input type="time" id="turnoTardeInicio" value="13:00" required>
+        
+                <label for="turnoTardeFin">Turno Tarde - Hora de Fin:</label>
+                <input type="time" id="turnoTardeFin" value="21:30" required>
+        
+                <label for="turnoPartidoInicio1">Turno Partido - Hora de Inicio 1:</label>
+                <input type="time" id="turnoPartidoInicio1" value="07:00" required>
+        
+                <label for="turnoPartidoFin1">Turno Partido - Hora de Fin 1:</label>
+                <input type="time" id="turnoPartidoFin1" value="12:00" required>
+        
+                <label for="turnoPartidoInicio2">Turno Partido - Hora de Inicio 2:</label>
+                <input type="time" id="turnoPartidoInicio2" value="17:00" required>
+        
+                <label for="turnoPartidoFin2">Turno Partido - Hora de Fin 2:</label>
+                <input type="time" id="turnoPartidoFin2" value="21:30" required>
+
+                <button type="submit">Generar Horario</button>
+            </form>
+        </section>
+        
+
+        <section id="mallaHoraria">
+            <h2>Malla Horaria</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Turno</th>
+                        <th>Empleado</th>
+                        <th>Horas Trabajadas</th>
+                    </tr>
+                </thead>
+                <tbody id="mallaBody">
+                    <!-- Aquí se llenarán los datos de la malla horaria -->
+                </tbody>
+            </table>
+        </section>
+
+        <section id="descansos">
+            <h2>Descansos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Días de Descanso</th>
+                    </tr>
+                </thead>
+                <tbody id="descansosBody">
+                    <!-- Aquí se llenarán los días de descanso -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Droguerías Davivir. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="js/employes.js"></script>
+</body>
+</html>
