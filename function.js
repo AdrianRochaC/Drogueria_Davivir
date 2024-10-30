@@ -89,19 +89,26 @@ function generateSchedule() {
             selectedDeliveryPerson.schedule.push(new Schedule(dayString, 'Domiciliario', selectedDeliveryPerson.name));
         }
 
-        // Asignar 2 Auxiliares Farmacéuticos (AF) en la mañana
-        const availableAFMorning = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
-        const selectedAFMorning = availableAFMorning.sort(() => Math.random() - 0.5).slice(0, 2);
-        selectedAFMorning.forEach(employee => {
-            employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name));
-        });
+        // Asignar 3 Auxiliares Farmacéuticos (AF) en total
+        const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
+        if (availableAF.length >= 3) {
+            // Seleccionar aleatoriamente 3 AF
+            const selectedAF = availableAF.sort(() => Math.random() - 0.5).slice(0, 3);
 
-        // Asignar 2 Auxiliares Farmacéuticos (AF) en la tarde
-        const availableAFAfternoon = availableAFMorning.filter(employee => !selectedAFMorning.includes(employee));
-        const selectedAFAfternoon = availableAFAfternoon.sort(() => Math.random() - 0.5).slice(0, 2);
-        selectedAFAfternoon.forEach(employee => {
-            employee.schedule.push(new Schedule(dayString, 'Turno 2', employee.name));
-        });
+            // Elegir uno de ellos para el turno partido
+            const indexForPartido = Math.floor(Math.random() * selectedAF.length);
+            const partidoAF = selectedAF[indexForPartido];
+
+            // Asignar el turno partido al AF seleccionado
+            partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name));
+
+            // Asignar turnos normales a los otros dos AF
+            selectedAF.forEach((employee, index) => {
+                if (index !== indexForPartido) {
+                    employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
+                }
+            });
+        }
 
         // Asignar 1 Administrativo (AD) en la mañana
         const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
