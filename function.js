@@ -82,7 +82,7 @@ function generateSchedule() {
         const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
         console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
 
-        // Asignar 1 Domiciliario (solo uno por día)
+                // Asignar 1 Domiciliario (solo uno por día)
         const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
         if (availableDeliveryPersons.length > 0) {
             const selectedDeliveryPerson = availableDeliveryPersons[Math.floor(Math.random() * availableDeliveryPersons.length)];
@@ -177,8 +177,7 @@ function calculateRestDays() {
     };
 
     const assignedRestDays = new Set(); // Para rastrear los días de descanso asignados
-
-    employees.forEach(employee => {
+        employees.forEach(employee => {
         const restDays = [];
 
         // Asegúrate de que solo se asignen días de descanso válidos
@@ -237,7 +236,7 @@ function saveSchedule() {
         };
     });
 
-    // Here you can implement the logic to save the data, for example, send it to a server
+    // Aquí puedes implementar la lógica para guardar los datos, por ejemplo, enviarlos a un servidor
     console.log('Schedule saved:', JSON.stringify(scheduleData, null, 2));
 }
 
