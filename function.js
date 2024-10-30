@@ -138,11 +138,31 @@ function getDayName(date) {
     return days[date.getDay()];
 }
 
+// Inicializar el calendario
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', // Vista inicial del calendario
+        events: [], // Aquí se agregarán los eventos
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        eventClick: function(info) {
+            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employee);
+        }
+    });
+
+    calendar.render();
+
+    // Guardar referencia al calendario para usarlo más adelante
+    window.calendar = calendar;
+});
+
+// Modificar displaySchedule para usar el calendario
 function displaySchedule() {
     console.log("Mostrando horario...");
-    const mallaBody = document.getElementById('mallaBody');
-    mallaBody.innerHTML = '';
-
     const allSchedules = [];
     employees.forEach(employee => {
         employee.schedule.forEach(schedule => {
@@ -152,18 +172,22 @@ function displaySchedule() {
 
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // Limpiar eventos anteriores
+    window.calendar.removeAllEvents();
+
     allSchedules.forEach(schedule => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${schedule.date}</td>
-            <td>${schedule.shift === 'Domiciliario' ? 'Domiciliario (9:00 AM - 1:00 PM, 3:00 PM - 9:00 PM)' : shifts.find(shift => shift.name === schedule.shift).description}</td>
-            <td>${schedule.employee}</td>
-            <td>${shifts.find(shift => shift.name === schedule.shift).hours}</td>
-        `;
-        mallaBody.appendChild(row);
+        const event = {
+            title: schedule.shift === 'Domiciliario' ? 'Domiciliario' : shifts.find(shift => shift.name === schedule.shift).description,
+            start: schedule.date,
+            extendedProps: {
+                employee: schedule.employee,
+                hours: shifts.find(shift => shift.name === schedule.shift).hours
+            }
+        };
+        window.calendar.addEvent(event);
     });
 
-    console.log("Horario mostrado:", allSchedules);
+    console.log("Horario mostrado en el calendario:", allSchedules);
 }
 
 function calculateRestDays() {
