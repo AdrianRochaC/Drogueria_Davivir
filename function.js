@@ -181,19 +181,7 @@ function displaySchedule() {
                 date: schedule.date,
                 shift: schedule.shift,
                 employee: employee.name,
-                hours: shifts.find(shift => shift.name === schedule.shift).description,
-                type: 'turno' // Tipo de evento
-            });
-        });
-
-        // Agrupar días de descanso
-        employee.restDays.forEach(restDay => {
-            allSchedules.push({
-                date: restDay,
-                shift: 'Descanso',
-                employee: employee.name,
-                hours: 'Día de descanso',
-                type: 'descanso' // Tipo de evento
+                hours: shifts.find(shift => shift.name === schedule.shift).description
             });
         });
     });
@@ -211,18 +199,9 @@ function displaySchedule() {
             extendedProps: {
                 shift: schedule.shift,
                 employee: schedule.employee,
-                hours: schedule.hours,
-                type: schedule.type
+                hours: schedule.hours
             }
         };
-
-        // Asignar un color diferente para los días de descanso
-        if (schedule.type === 'descanso') {
-            event.color = 'green'; // Color para días de descanso
-        } else {
-            event.color = 'blue'; // Color para turnos
-        }
-
         window.calendar.addEvent(event);
     });
 
@@ -231,8 +210,7 @@ function displaySchedule() {
 
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
-    const validWeekDays = ['Lunes', 'Miércoles', 'Viernes'];
-    const validSundays = ['Domingo'];
+    const validRestDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
     const restDaysMap = {
         'Lunes': 1,
         'Miércoles': 3,
@@ -241,80 +219,36 @@ function calculateRestDays() {
     };
 
     const assignedRestDays = new Set(); // Para rastrear los días de descanso asignados
+        employees.forEach(employee => {
+        const restDays = [];
 
-    // Asignar días de descanso para Auxiliares Farmacéuticos
-    const afRestDays = [];
-    employees.forEach(employee => {
-        if (employee.role === 'Auxiliar Farmacéutico') {
-            const restDays = [];
-            // Asignar 1 día entre semana y 1 domingo
-            while (restDays.length < 2) {
-                // Elegir un día entre semana
-                if (restDays.length === 0) {
-                    const randomWeekday = validWeekDays[Math.floor(Math.random() * validWeekDays.length)];
-                    if (!assignedRestDays.has(randomWeekday)) {
-                        restDays.push(randomWeekday);
-                        assignedRestDays.add(randomWeekday);
-                    }
-                } else {
-                    // Elegir un domingo
-                    const randomSunday = validSundays[0]; // Solo hay un domingo
-                    if (!assignedRestDays.has(randomSunday)) {
-                        restDays.push(randomSunday);
-                        assignedRestDays.add(randomSunday);
-                    }
-                }
+        // Asegúrate de que solo se asignen días de descanso válidos
+        while (restDays.length < 2) {
+            const randomIndex = Math.floor(Math.random() * validRestDays.length);
+            const selectedDay = validRestDays[randomIndex];
+
+            // Verifica que el día no esté ya asignado a otro empleado
+            if (!restDays.includes(selectedDay) && !assignedRestDays.has(selectedDay)) {
+                restDays.push(selectedDay);
+                assignedRestDays.add(selectedDay); // Marca el día como asignado
             }
 
-            console.log(`Empleado: ${employee.name}, Días de descanso: ${restDays.join(', ')}`);
-
-            const restDates = restDays.map(day => {
-                const dayOfMonth = restDaysMap[day];
-                const date = new Date(2024, 10, dayOfMonth);
-                return date.toISOString().split('T')[0];
-            });
-
-            employee.restDays = restDates;
-            afRestDays.push(restDates);
+            // Si ya se han asignado todos los días válidos, salimos del bucle
+            if (assignedRestDays.size === validRestDays.length) {
+                break;
+            }
         }
+
+        console.log(`Empleado: ${employee.name}, Días de descanso: ${restDays.join(', ')}`);
+
+        const restDates = restDays.map(day => {
+            const dayOfMonth = restDaysMap[day];
+            const date = new Date(2024, 10, dayOfMonth);
+            return date.toISOString().split('T')[0];
+        });
+
+        employee.restDays = restDates;
     });
-
-    // Asignar días de descanso para Administrativos
-    const adRestDays = [];
-    employees.forEach(employee => {
-        if (employee.role === 'Administrativo') {
-            const restDays = [];
-            // Asignar 2 domingos
-            while (restDays.length < 2) {
-                const randomSunday = validSundays[0]; // Solo hay un domingo
-                if (!assignedRestDays.has(randomSunday)) {
-                    restDays.push(randomSunday);
-                    assignedRestDays.add(randomSunday);
-                }
-            }
-
-            console.log(`Empleado: ${employee.name}, Días de descanso: ${restDays.join(', ')}`);
-
-            const restDates = restDays.map(day => {
-                const dayOfMonth = restDaysMap[day];
-                const date = new Date(2024, 10, dayOfMonth);
-                return date.toISOString().split('T')[0];
-            });
-
-            employee.restDays = restDates;
-            adRestDays.push(restDates);
-        }
-    });
-
-    // Asegurarse de que no se repitan días de descanso entre AD y AF
-    for (let i = 0; i < afRestDays.length; i++) {
-        for (let j = 0; j < adRestDays.length; j++) {
-            if (afRestDays[i].includes(adRestDays[j][0])) {
-                // Si hay coincidencia, ajustar
-                adRestDays[j] = adRestDays[j].filter(day => day !== adRestDays[j][0]); // Eliminar el domingo que coincide
-            }
-        }
-    }
 }
 
 function displayRestDays() {
@@ -358,6 +292,13 @@ document.getElementById('saveButton').addEventListener('click', function() {
 function showConfirmation() {
     alert('El horario ha sido guardado exitosamente.');
 }
+
+
+// Function to show a confirmation message
+function showConfirmation() {
+    alert('El horario ha sido guardado exitosamente.');
+}
+
 
 
 // Function to show a confirmation message
