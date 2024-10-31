@@ -164,9 +164,16 @@ document.addEventListener('DOMContentLoaded', function() {
 function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
+    
+    // Agrupar turnos por fecha
     employees.forEach(employee => {
         employee.schedule.forEach(schedule => {
-            allSchedules.push(schedule);
+            allSchedules.push({
+                date: schedule.date,
+                shift: schedule.shift,
+                employee: employee.name,
+                hours: shifts.find(shift => shift.name === schedule.shift).description
+            });
         });
     });
 
@@ -175,19 +182,34 @@ function displaySchedule() {
     // Limpiar eventos anteriores
     window.calendar.removeAllEvents();
 
+    // Agrupar turnos por fecha para crear un solo evento por día
+    const schedulesByDate = {};
+
     allSchedules.forEach(schedule => {
+        if (!schedulesByDate[schedule.date]) {
+            schedulesByDate[schedule.date] = {
+                employees: [],
+                shifts: []
+            };
+        }
+        schedulesByDate[schedule.date].employees.push(schedule.employee);
+        schedulesByDate[schedule.date].shifts.push(schedule.shift);
+    });
+
+    // Crear eventos para cada fecha con todos los empleados
+    Object.keys(schedulesByDate).forEach(date => {
         const event = {
-            title: schedule.shift === 'Domiciliario' ? 'Domiciliario' : shifts.find(shift => shift.name === schedule.shift).description,
-            start: schedule.date,
+            title: `Empleados: ${schedulesByDate[date].employees.join(', ')}`,
+            start: date,
             extendedProps: {
-                employee: schedule.employee,
-                hours: shifts.find(shift => shift.name === schedule.shift).hours
+                shifts: schedulesByDate[date].shifts.join(', '),
+                employees: schedulesByDate[date].employees
             }
         };
         window.calendar.addEvent(event);
     });
 
-    console.log("Horario mostrado en el calendario:", allSchedules);
+    console.log("Horario mostrado en el calendario:", schedulesByDate);
 }
 
 function calculateRestDays() {
