@@ -142,22 +142,20 @@ function getDayName(date) {
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', // Vista inicial del calendario
-        events: [], // Aquí se agregarán los eventos
+        initialView: 'dayGridMonth', // Initial view of the calendar
+        events: [], // Events will be added here
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         eventClick: function(info) {
-            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employee);
+            alert('Shift: ' + info.event.title + '\nEmployee: ' + info.event.extendedProps.employee);
         }
     });
 
     calendar.render();
-
-    // Guardar referencia al calendario para usarlo más adelante
-    window.calendar = calendar;
+    window.calendar = calendar; // Save reference to the calendar
 });
 
 // Modificar displaySchedule para usar el calendario
