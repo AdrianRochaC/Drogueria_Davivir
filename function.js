@@ -82,7 +82,7 @@ function generateSchedule() {
         const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
         console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
 
-                // Asignar 1 Domiciliario (solo uno por día)
+        // Asignar 1 Domiciliario (solo uno por día)
         const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
         if (availableDeliveryPersons.length > 0) {
             const selectedDeliveryPerson = availableDeliveryPersons[Math.floor(Math.random() * availableDeliveryPersons.length)];
@@ -113,6 +113,14 @@ function generateSchedule() {
             selectedAF.forEach(employee => {
                 employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
             });
+        } else if (availableAF.length === 2) {
+            // Si hay exactamente 2 Auxiliares Farmacéuticos, asignar el turno partido a uno y el turno tarde al otro
+            const selectedAF = availableAF.sort(() => Math.random() - 0.5);
+            selectedAF[0].schedule.push(new Schedule(dayString, 'Turno 3', selectedAF[0].name)); // Turno partido
+            selectedAF[1].schedule.push(new Schedule(dayString, 'Turno 2', selectedAF[1].name)); // Turno tarde
+        } else if (availableAF.length === 1) {
+            // Si solo hay 1 Auxiliar Farmacéutico, asignar solo el turno de mañana
+            availableAF[0].schedule.push(new Schedule(dayString, 'Turno 1', availableAF[0].name)); // Turno de mañana
         }
 
         // Asignar 1 Administrativo (AD) en la mañana
@@ -123,11 +131,14 @@ function generateSchedule() {
             selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
         }
 
-        // Asignar 1 Administrativo (AD) en la tarde
+                // Asignar 1 Administrativo (AD) en la tarde
         const availableADAfternoon = administrators.filter(ad => !restDayEmployees.includes(ad) && ad !== selectedADMorning);
         if (availableADAfternoon.length > 0) {
             const selectedADAfternoon = availableADAfternoon[Math.floor(Math.random() * availableADAfternoon.length)];
             selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
+        } else if (availableADMorning && !restDayEmployees.includes(selectedADMorning)) {
+            // Si no hay disponibles para la tarde, asignar el turno partido al administrativo
+            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 3', selectedADMorning.name));
         }
     }
 }
