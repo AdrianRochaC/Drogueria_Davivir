@@ -172,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Modificar displaySchedule para usar el calendario
-// Modificar displaySchedule para usar el calendario
 function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
@@ -201,36 +200,47 @@ function displaySchedule() {
         });
     });
 
+    // Ordenar los eventos por fecha
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // Limpiar eventos anteriores
     window.calendar.removeAllEvents();
 
+    // Crear un conjunto para rastrear las fechas ya agregadas
+    const addedDates = new Set();
+
     // Crear eventos para cada empleado en cada fecha
     allSchedules.forEach(schedule => {
-        const event = {
-            title: `${schedule.employee}: ${schedule.hours}`, // Mostrar el nombre del empleado y sus horas
-            start: schedule.date,
-            extendedProps: {
-                shift: schedule.shift,
-                employee: schedule.employee,
-                hours: schedule.hours,
-                type: schedule.type
+        const eventKey = `${schedule.date}-${schedule.employee}`; // Clave única para cada evento
+
+        // Solo agregar el evento si no se ha agregado ya
+        if (!addedDates.has(eventKey)) {
+            const event = {
+                title: `${schedule.employee}: ${schedule.hours}`, // Mostrar el nombre del empleado y sus horas
+                start: schedule.date,
+                extendedProps: {
+                    shift: schedule.shift,
+                    employee: schedule.employee,
+                    hours: schedule.hours,
+                    type: schedule.type
+                }
+            };
+
+            // Asignar un color diferente para los días de descanso
+            if (schedule.type === 'descanso') {
+                event.color = 'green'; // Color para días de descanso
+            } else {
+                event.color = 'blue'; // Color para turnos
             }
-        };
 
-        // Asignar un color diferente para los días de descanso
-        if (schedule.type === 'descanso') {
-            event.color = 'green'; // Color para días de descanso
-        } else {
-            event.color = 'blue'; // Color para turnos
+            window.calendar.addEvent(event);
+            addedDates.add(eventKey); // Marcar la fecha como agregada
         }
-
-        window.calendar.addEvent(event);
     });
 
     console.log("Horario mostrado en el calendario:", allSchedules);
 }
+
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
     const validRestDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
