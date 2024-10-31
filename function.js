@@ -87,7 +87,30 @@ function generateSchedule() {
         const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
         if (availableDeliveryPersons.length > 0) {
             const selectedDeliveryPerson = availableDeliveryPersons[Math.floor(Math.random() * availableDeliveryPersons.length)];
-@@ -113,6 +113,14 @@
+            selectedDeliveryPerson.schedule.push(new Schedule(dayString, 'Domiciliario', selectedDeliveryPerson.name));
+        }
+
+        // Filtrar Auxiliares Farmacéuticos disponibles
+        const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
+
+        // Si hay exactamente 3 Auxiliares Farmacéuticos, asignar uno con turno partido
+        if (availableAF.length === 3) {
+            // Seleccionar aleatoriamente uno para el turno partido
+            const indexForPartido = Math.floor(Math.random() * availableAF.length);
+            const partidoAF = availableAF[indexForPartido];
+
+            // Asignar el turno partido al AF seleccionado
+            partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name));
+
+            // Asignar turnos normales a los otros dos AF
+            availableAF.forEach((employee, index) => {
+                if (index !== indexForPartido) {
+                    employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
+                }
+            });
+        } else if (availableAF.length > 3) {
+            // Si hay más de 3 AF, asignar turnos normales
+            const selectedAF = availableAF.sort(() => Math.random() - 0.5).slice(0, 3);
             selectedAF.forEach(employee => {
                 employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
             });
@@ -102,7 +125,10 @@ function generateSchedule() {
         }
 
         // Asignar 1 Administrativo (AD) en la mañana
-@@ -123,167 +131,170 @@
+        const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
+        let selectedADMorning; // Inicializamos la variable aquí
+        if (availableADMorning.length > 0) {
+            selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
             selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
         }
 
