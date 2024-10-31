@@ -251,18 +251,21 @@ function calculateRestDays() {
         'Domingo': 0
     };
 
-    const assignedRestDays = new Set(); // Para rastrear los días de descanso asignados
+    // Lista para llevar el control de días de descanso asignados
+    const assignedRestDays = new Set();
+
     employees.forEach(employee => {
         const restDays = [];
 
-        // Asegúrate de que solo se asignen días de descanso válidos
+        // Asignar 2 días de descanso únicos a cada empleado
         while (restDays.length < 2) {
             const randomIndex = Math.floor(Math.random() * validRestDays.length);
             const selectedDay = validRestDays[randomIndex];
 
             // Verifica que el día no esté ya asignado a otro empleado
-            if (!restDays.includes(selectedDay)) {
+            if (!assignedRestDays.has(selectedDay)) {
                 restDays.push(selectedDay);
+                assignedRestDays.add(selectedDay); // Marca el día como asignado
             }
         }
 
@@ -277,6 +280,7 @@ function calculateRestDays() {
         employee.restDays = restDates;
     });
 }
+
 function displayRestDays() {
     console.log("Mostrando días de descanso...");
     const descansosBody = document.getElementById('descansosBody');
