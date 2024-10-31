@@ -25,7 +25,24 @@ const shifts = [
 
 document.getElementById('configForm').addEventListener('submit', function(event) {
     event.preventDefault();
-    generateEmployees();
+    const numEmployees = document.getElementById('numEmpleados').value;
+
+    // Obtener las horas de los turnos desde el formulario
+    const turnoDiaInicio = document.getElementById('turnoDiaInicio').value;
+    const turnoDiaFin = document.getElementById('turnoDiaFin').value;
+    const turnoTardeInicio = document.getElementById('turnoTardeInicio').value;
+    const turnoTardeFin = document.getElementById('turnoTardeFin').value;
+    const turnoPartidoInicio1 = document.getElementById('turnoPartidoInicio1').value;
+    const turnoPartidoFin1 = document.getElementById('turnoPartidoFin1').value;
+    const turnoPartidoInicio2 = document.getElementById('turnoPartidoInicio2').value;
+    const turnoPartidoFin2 = document.getElementById('turnoPartidoFin2').value;
+
+    // Actualizar la lista de turnos
+    shifts[0].description = `Mañana (${turnoDiaInicio} - ${turnoDiaFin})`;
+    shifts[1].description = `Tarde (${turnoTardeInicio} - ${turnoTardeFin})`;
+    shifts[2].description = `Partido (${turnoPartidoInicio1} - ${turnoPartidoFin1}, ${turnoPartidoInicio2} - ${turnoPartidoFin2})`;
+
+    generateEmployees(numEmployees);
     calculateRestDays();
     generateSchedule();
     displaySchedule();
@@ -58,57 +75,104 @@ function generateSchedule() {
     const auxiliaries = employees.filter(employee => employee.role === 'Auxiliar Farmacéutico');
     const administrators = employees.filter(employee => employee.role === 'Administrativo');
 
-    // Días válidos para trabajar
-    const validWorkDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
-
     for (let day = 1; day <= daysInNovember; day++) {
         const date = new Date(2024, 10, day);
         const dayString = date.toISOString().split('T')[0];
-        const dayName = getDayName(date);
 
-        // Solo trabajar en días válidos
-        if (validWorkDays.includes(dayName)) {
-            const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
-            console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
+        const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
+        console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
 
-            // Asignar 1 Domiciliario (solo uno por día)
-            const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
-            if (availableDeliveryPersons.length > 0) {
-                const selectedDeliveryPerson = availableDeliveryPersons[Math.floor(Math.random() * availableDeliveryPersons.length)];
-                selectedDeliveryPerson.schedule.push(new Schedule(dayString, 'Domiciliario', selectedDeliveryPerson.name));
-            }
+                // Asignar 1 Domiciliario (solo uno por día)
+        // Asignar 1 Domiciliario (solo uno por día)
+        const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
+        if (availableDeliveryPersons.length > 0) {
+            const selectedDeliveryPerson = availableDeliveryPersons[Math.floor(Math.random() * availableDeliveryPersons.length)];
+            selectedDeliveryPerson.schedule.push(new Schedule(dayString, 'Domiciliario', selectedDeliveryPerson.name));
+        }
 
-            // Filtrar Auxiliares Farmacéuticos disponibles
-            const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
+        // Filtrar Auxiliares Farmacéuticos disponibles
+        const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
 
-            // Si hay exactamente 3 Auxiliares Farmacéuticos, asignar uno con turno partido
-            if (availableAF.length === 3) {
-                const indexForPartido = Math.floor(Math.random() * availableAF.length);
-                const partidoAF = availableAF[indexForPartido];
+        // Si hay exactamente 3 Auxiliares Farmacéuticos, asignar uno con turno partido
+        if (availableAF.length === 3) {
+            // Seleccionar aleatoriamente uno para el turno partido
+            const indexForPartido = Math.floor(Math.random() * availableAF.length);
+            const partidoAF = availableAF[indexForPartido];
 
-                // Asignar el turno partido al AF seleccionado
-                partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name)); // Turno partido
+            // Asignar el turno partido al AF seleccionado
+            partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name));
 
-                // Asignar turnos normales a los otros dos AF
-                availableAF.forEach((employee, index) => {
-                    if (index !== indexForPartido) {
-                        // Continuación de la función generateSchedule
-                        employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
-                    }
-                });
-            } else if (availableAF.length > 0) {
-                // Asignar turnos normales a los disponibles
-                availableAF.forEach(employee => {
+            // Asignar turnos normales a los otros dos AF
+            availableAF.forEach((employee, index) => {
+                if (index !== indexForPartido) {
                     employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
-                });
-            }
+                }
+            });
+        } else if (availableAF.length > 3) {
+            // Si hay más de 3 AF, asignar turnos normales
+            const selectedAF = availableAF.sort(() => Math.random() - 0.5).slice(0, 3);
+            selectedAF.forEach(employee => {
+                employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
+            });
+        } else if (availableAF.length === 2) {
+            // Si hay exactamente 2 Auxiliares Farmacéuticos, asignar el turno partido a uno y el turno tarde al otro
+            const selectedAF = availableAF.sort(() => Math.random() - 0.5);
+            selectedAF[0].schedule.push(new Schedule(dayString, 'Turno 3', selectedAF[0].name)); // Turno partido
+            selectedAF[1].schedule.push(new Schedule(dayString, 'Turno 2', selectedAF[1].name)); // Turno tarde
+        } else if (availableAF.length === 1) {
+            // Si solo hay 1 Auxiliar Farmacéutico, asignar solo el turno de mañana
+            availableAF[0].schedule.push(new Schedule(dayString, 'Turno 1', availableAF[0].name)); // Turno de mañana
+        }
+
+        // Asignar 1 Administrativo (AD) en la mañana
+        const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
+        let selectedADMorning; // Inicializamos la variable aquí
+        if (availableADMorning.length > 0) {
+            selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
+            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
+        }
+
+        // Asignar 1 Administrativo (AD) en la tarde
+                // Asignar 1 Administrativo (AD) en la tarde
+        const availableADAfternoon = administrators.filter(ad => !restDayEmployees.includes(ad) && ad !== selectedADMorning);
+        if (availableADAfternoon.length > 0) {
+            const selectedADAfternoon = availableADAfternoon[Math.floor(Math.random() * availableADAfternoon.length)];
+            selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
+        } else if (availableADMorning && !restDayEmployees.includes(selectedADMorning)) {
+            // Si no hay disponibles para la tarde, asignar el turno partido al administrativo
+            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 3', selectedADMorning.name));
         }
     }
-
-    // Llama a displaySchedule después de generar el horario
-    displaySchedule();
 }
 
+// Helper function to get the name of the day
+function getDayName(date) {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return days[date.getDay()];
+}
+
+// Inicializar el calendario
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', // Initial view of the calendar
+        events: [], // Events will be added here
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        eventClick: function(info) {
+            alert('Shift: ' + info.event.title + '\nEmployee: ' + info.event.extendedProps.employee);
+        }
+    });
+
+    calendar.render();
+    window.calendar = calendar; // Save reference to the calendar
+});
+
+// Modificar displaySchedule para usar el calendario
+// Modificar displaySchedule para usar el calendario
 function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
@@ -137,11 +201,14 @@ function displaySchedule() {
         });
     });
 
+    // Ordenar los eventos por fecha
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // Limpiar eventos anteriores
     window.calendar.removeAllEvents();
 
+    // Crear un conjunto para rastrear las fechas ya agregadas
+    const addedDates = new Set();
     // Crear eventos para cada empleado en cada fecha
     allSchedules.forEach(schedule => {
         const event = {
@@ -152,6 +219,24 @@ function displaySchedule() {
                 employee: schedule.employee,
                 hours: schedule.hours,
                 type: schedule.type
+        const eventKey = `${schedule.date}-${schedule.employee}`; // Clave única para cada evento
+        // Solo agregar el evento si no se ha agregado ya
+        if (!addedDates.has(eventKey)) {
+            const event = {
+                title: `${schedule.employee}: ${schedule.hours}`, // Mostrar el nombre del empleado y sus horas
+                start: schedule.date,
+                extendedProps: {
+                    shift: schedule.shift,
+                    employee: schedule.employee,
+                    hours: schedule.hours,
+                    type: schedule.type
+                }
+            };
+            // Asignar un color diferente para los días de descanso
+            if (schedule.type === 'descanso') {
+                event.color = 'green'; // Color para días de descanso
+            } else {
+                event.color = 'blue'; // Color para turnos
             }
         };
 
@@ -160,41 +245,104 @@ function displaySchedule() {
             event.color = 'green'; // Color para días de descanso
         } else {
             event.color = 'blue'; // Color para turnos
+            window.calendar.addEvent(event);
+            addedDates.add(eventKey); // Marcar la fecha como agregada
         }
-
         window.calendar.addEvent(event);
     });
-}
 
-function getDayName(date) {
-    const options = { weekday: 'long' };
-    return new Intl.DateTimeFormat('es-ES', options).format(date);
+    console.log("Horario mostrado en el calendario:", allSchedules);
 }
-
 function calculateRestDays() {
-    // Aquí puedes definir la lógica para calcular los días de descanso de los empleados
-    const totalEmployees = employees.length;
-    const restDaysCount = Math.floor(totalEmployees / 2); // Ejemplo: cada empleado tiene 2 días de descanso
+    console.log("Calculando días de descanso...");
+    const validRestDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
+    const restDaysMap = {
+        'Lunes': 1,
+        'Miércoles': 3,
+        'Viernes': 5,
+        'Domingo': 0
+    };
 
-    employees.forEach(employee => {
+    const assignedRestDays = new Set(); // Para rastrear los días de descanso asignados
+        employees.forEach(employee => {
         const restDays = [];
-        for (let i = 0; i < restDaysCount; i++) {
-            const randomRestDay = `2024-11-${Math.floor(Math.random() * 30) + 1}`; // Genera un día aleatorio en noviembre
-            if (!restDays.includes(randomRestDay)) {
-                restDays.push(randomRestDay);
+
+        // Asegúrate de que solo se asignen días de descanso válidos
+        while (restDays.length < 2) {
+            const randomIndex = Math.floor(Math.random() * validRestDays.length);
+            const selectedDay = validRestDays[randomIndex];
+
+            // Verifica que el día no esté ya asignado a otro empleado
+            if (!restDays.includes(selectedDay) && !assignedRestDays.has(selectedDay)) {
+                restDays.push(selectedDay);
+                assignedRestDays.add(selectedDay); // Marca el día como asignado
+            }
+
+            // Si ya se han asignado todos los días válidos, salimos del bucle
+            if (assignedRestDays.size === validRestDays.length) {
+                break;
             }
         }
-        employee.restDays = restDays;
+
+        console.log(`Empleado: ${employee.name}, Días de descanso: ${restDays.join(', ')}`);
+
+        const restDates = restDays.map(day => {
+            const dayOfMonth = restDaysMap[day];
+            const date = new Date(2024, 10, dayOfMonth);
+            return date.toISOString().split('T')[0];
+        });
+
+        employee.restDays = restDates;
     });
 }
 
 function displayRestDays() {
     console.log("Mostrando días de descanso...");
+    const descansosBody = document.getElementById('descansosBody');
+    descansosBody.innerHTML = ''; // Limpiar el contenido anterior
+
     employees.forEach(employee => {
-        console.log(`Días de descanso para ${employee.name}: ${employee.restDays.join(', ')}`);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${employee.name}</td>
+            <td>${employee.restDays.length > 0 ? employee.restDays.join(', ') : 'Sin días de descanso'}</td>
+        `;
+        descansosBody.appendChild(row);
     });
+
+    console.log("Días de descanso mostrados:", employees.map(e => ({ name: e.name, restDays: e.restDays })));
 }
 
+// Function to save schedule changes
+function saveSchedule() {
+    const scheduleData = employees.map(employee => {
+        return {
+            name: employee.name,
+            schedule: employee.schedule,
+            restDays: employee.restDays
+        };
+    });
+
+    // Aquí puedes implementar la lógica para guardar los datos, por ejemplo, enviarlos a un servidor
+    console.log('Schedule saved:', JSON.stringify(scheduleData, null, 2));
+}
+
+// Event for the save button
+document.getElementById('saveButton').addEventListener('click', function() {
+    saveSchedule();
+    showConfirmation();
+});
+
+// Function to show a confirmation message
+function showConfirmation() {
+    alert('El horario ha sido guardado exitosamente.');
+}
+
+
+// Function to show a confirmation message
+function showConfirmation() {
+    alert('El horario ha sido guardado exitosamente.');
+}
 
 
 // Function to show a confirmation message
