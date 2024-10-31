@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Modificar displaySchedule para usar el calendario
 // Modificar displaySchedule para usar el calendario
+// Modificar displaySchedule para usar el calendario
 function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
@@ -184,11 +185,11 @@ function displaySchedule() {
                 date: schedule.date,
                 shift: schedule.shift,
                 employee: employee.name,
-                hours: shifts.find(shift => shift.name === schedule.shift).description
                 hours: shifts.find(shift => shift.name === schedule.shift).description,
                 type: 'turno' // Tipo de evento
             });
         });
+
         // Agrupar días de descanso
         employee.restDays.forEach(restDay => {
             allSchedules.push({
@@ -214,22 +215,24 @@ function displaySchedule() {
             extendedProps: {
                 shift: schedule.shift,
                 employee: schedule.employee,
-                hours: schedule.hours
                 hours: schedule.hours,
                 type: schedule.type
             }
         };
+
         // Asignar un color diferente para los días de descanso
         if (schedule.type === 'descanso') {
             event.color = 'green'; // Color para días de descanso
         } else {
             event.color = 'blue'; // Color para turnos
         }
+
         window.calendar.addEvent(event);
     });
 
     console.log("Horario mostrado en el calendario:", allSchedules);
 }
+
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
     const validRestDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
