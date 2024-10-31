@@ -182,34 +182,21 @@ function displaySchedule() {
     // Limpiar eventos anteriores
     window.calendar.removeAllEvents();
 
-    // Agrupar turnos por fecha para crear un solo evento por día
-    const schedulesByDate = {};
-
+    // Crear eventos para cada empleado en cada fecha
     allSchedules.forEach(schedule => {
-        if (!schedulesByDate[schedule.date]) {
-            schedulesByDate[schedule.date] = {
-                employees: [],
-                shifts: []
-            };
-        }
-        schedulesByDate[schedule.date].employees.push(schedule.employee);
-        schedulesByDate[schedule.date].shifts.push(schedule.shift);
-    });
-
-    // Crear eventos para cada fecha con todos los empleados
-    Object.keys(schedulesByDate).forEach(date => {
         const event = {
-            title: `Empleados: ${schedulesByDate[date].employees.join(', ')}`,
-            start: date,
+            title: `${schedule.employee}: ${schedule.hours}`, // Mostrar el nombre del empleado y sus horas
+            start: schedule.date,
             extendedProps: {
-                shifts: schedulesByDate[date].shifts.join(', '),
-                employees: schedulesByDate[date].employees
+                shift: schedule.shift,
+                employee: schedule.employee,
+                hours: schedule.hours
             }
         };
         window.calendar.addEvent(event);
     });
 
-    console.log("Horario mostrado en el calendario:", schedulesByDate);
+    console.log("Horario mostrado en el calendario:", allSchedules);
 }
 
 function calculateRestDays() {
