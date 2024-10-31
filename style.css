@@ -34,6 +34,11 @@ section {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+#calendar {
+    max-width: 900px; /* Ancho máximo para el calendario */
+    margin: 0 auto; /* Centrar el calendario */
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -74,7 +79,7 @@ button {
 }
 
 button:hover {
-    background-color: #8bc63e;
+    background-color: #7ab82e; /* Color más oscuro al pasar el mouse */
 }
 
 @media screen and (max-width: 768px) {
