@@ -122,6 +122,7 @@ function getDayName(date) {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     return days[date.getDay()];
 }
+
 // Inicializar el calendario
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
