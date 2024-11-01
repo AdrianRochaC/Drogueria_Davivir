@@ -215,33 +215,37 @@ function displaySchedule() {
 
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
-    const validRestDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
+    
+    const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    const sundays = ['Domingo'];
     const restDaysMap = {
         'Lunes': 1,
+        'Martes': 2,
         'Miércoles': 3,
+        'Jueves': 4,
         'Viernes': 5,
         'Domingo': 0
     };
 
-    const assignedRestDays = new Set(); // Para rastrear los días de descanso asignados
     employees.forEach(employee => {
         const restDays = [];
 
-        // Asegúrate de que solo se asignen días de descanso válidos
-        while (restDays.length < 2) {
-            const randomIndex = Math.floor(Math.random() * validRestDays.length);
-            const selectedDay = validRestDays[randomIndex];
-
-            // Verifica que el día no esté ya asignado a otro empleado
-            if (!restDays.includes(selectedDay) && !assignedRestDays.has(selectedDay)) {
-                restDays.push(selectedDay);
-                assignedRestDays.add(selectedDay); // Marca el día como asignado
+        if (employee.role === 'Auxiliar Farmacéutico') {
+            // Asignar un día de descanso entre semana
+            const randomWeekday = weekdays[Math.floor(Math.random() * weekdays.length)];
+            restDays.push(randomWeekday);
+            // Asignar un domingo
+            restDays.push('Domingo');
+        } else if (employee.role === 'Administrativo') {
+            // Asignar dos domingos
+            const selectedSundays = [];
+            while (selectedSundays.length < 2) {
+                const randomSunday = sundays[0]; // Solo hay un domingo
+                if (!selectedSundays.includes(randomSunday)) {
+                    selectedSundays.push(randomSunday);
+                }
             }
-
-            // Si ya se han asignado todos los días válidos, salimos del bucle
-            if (assignedRestDays.size === validRestDays.length) {
-                break;
-            }
+            restDays.push(...selectedSundays);
         }
 
         console.log(`Empleado: ${employee.name}, Días de descanso: ${restDays.join(', ')}`);
