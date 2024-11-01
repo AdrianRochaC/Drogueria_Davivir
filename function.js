@@ -92,13 +92,13 @@ function generateEmployees(numEmployees) {
 
 function generateSchedule() {
     console.log("Generando horario...");
-    const daysInNovember = 30; // Suponiendo que estamos generando el horario para noviembre
+    const daysInNovember = 30;
     const deliveryPersons = employees.filter(employee => employee.role === 'Domiciliario');
     const auxiliaries = employees.filter(employee => employee.role === 'Auxiliar Farmacéutico');
     const administrators = employees.filter(employee => employee.role === 'Administrativo');
 
     for (let day = 1; day <= daysInNovember; day++) {
-        const date = new Date(2024, 10, day); // Noviembre es el mes 10 (0-indexado)
+        const date = new Date(2024, 10, day);
         const dayString = date.toISOString().split('T')[0];
 
         // Asignar días de descanso
@@ -116,21 +116,29 @@ function generateSchedule() {
         const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
 
         // Asignar turnos a Auxiliares Farmacéuticos
-        if (availableAF.length >= 3) {
-            const indexForPartido = Math.floor(Math.random() * availableAF.length);
-            const partidoAF = availableAF[indexForPartido];
-            partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name));
-            availableAF.forEach((employee, index) => {
-                if (index !== indexForPartido) {
-                    employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
-                }
-            });
-        } else if (availableAF.length === 2) {
-            const selectedAF = availableAF.sort(() => Math.random() - 0.5);
-            selectedAF[0].schedule.push(new Schedule(dayString, 'Turno 3', selectedAF[0].name)); // Turno partido
-            selectedAF[1].schedule.push(new Schedule(dayString, 'Turno 2', selectedAF[1].name)); // Turno tarde
-        } else if (availableAF.length === 1) {
-            availableAF[0].schedule.push(new Schedule(dayString, 'Turno 1', availableAF[0].name)); // Turno de mañana
+        if (availableAF.length > 0) {
+            // Si hay algún Auxiliar con descanso, asignar "Turno Partido"
+            if (restDayEmployees.some(e => e.role === 'Auxiliar Farmacéutico')) {
+                const partidoAF = availableAF[Math.floor(Math.random() * availableAF.length)];
+                partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name)); // Turno Partido
+                availableAF.forEach(employee => {
+                    if (employee !== partidoAF) {
+                        employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
+                    }
+                });
+            } else {
+                // Si no hay descansos, asignar 2 a la mañana y 2 a la tarde
+                const morningAF = availableAF.slice(0, 2); // Primeros 2 para la mañana
+                const afternoonAF = availableAF.slice(2, 4); // Siguientes 2 para la tarde
+
+                morningAF.forEach(employee => {
+                    employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
+                });
+
+                afternoonAF.forEach(employee => {
+                    employee.schedule.push(new Schedule(dayString, 'Turno 2', employee.name)); // Turno de tarde
+                });
+            }
         }
 
         // Asignar 1 Administrativo (AD) en la mañana
@@ -146,8 +154,6 @@ function generateSchedule() {
         if (availableADAfternoon.length > 0) {
             const selectedADAfternoon = availableADAfternoon[Math.floor(Math.random() * availableADAfternoon.length)];
             selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
-        } else if (selectedADMorning && !restDayEmployees.includes(selectedADMorning)) {
-            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 3', selectedADMorning.name)); // Turno partido
         }
     }
 }
