@@ -216,47 +216,32 @@ function displaySchedule() {
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
     
-    const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    // Días válidos para descanso
+    const weekdays = ['Lunes', 'Miércoles', 'Viernes']; // Solo estos días entre semana
     const sundays = ['Domingo'];
-    const restDaysMap = {
-        'Lunes': 1,
-        'Martes': 2,
-        'Miércoles': 3,
-        'Jueves': 4,
-        'Viernes': 5,
-        'Domingo': 0
-    };
 
     employees.forEach(employee => {
         const restDays = [];
 
         if (employee.role === 'Auxiliar Farmacéutico') {
-            // Asignar un día de descanso entre semana
+            // Asignar un día de descanso entre semana (Lunes, Miércoles o Viernes)
             const randomWeekday = weekdays[Math.floor(Math.random() * weekdays.length)];
             restDays.push(randomWeekday);
             // Asignar un domingo
             restDays.push('Domingo');
         } else if (employee.role === 'Administrativo') {
             // Asignar dos domingos
-            const selectedSundays = [];
-            while (selectedSundays.length < 2) {
-                const randomSunday = sundays[0]; // Solo hay un domingo
-                if (!selectedSundays.includes(randomSunday)) {
-                    selectedSundays.push(randomSunday);
-                }
-            }
-            restDays.push(...selectedSundays);
+            restDays.push('Domingo'); // Primer domingo
+            restDays.push('Domingo'); // Segundo domingo
         }
 
-        console.log(`Empleado: ${employee.name}, Días de descanso: ${restDays.join(', ')}`);
+        // Eliminar duplicados (en el caso de los Administrativos)
+        const uniqueRestDays = [...new Set(restDays)];
 
-        const restDates = restDays.map(day => {
-            const dayOfMonth = restDaysMap[day];
-            const date = new Date(2024, 10, dayOfMonth);
-            return date.toISOString().split('T')[0];
-        });
+        console.log(`Empleado: ${employee.name}, Días de descanso: ${uniqueRestDays.join(', ')}`);
 
-        employee.restDays = restDates;
+        // Asignar los días de descanso al empleado
+        employee.restDays = uniqueRestDays;
     });
 }
 
