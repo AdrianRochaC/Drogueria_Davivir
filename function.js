@@ -1,3 +1,5 @@
+// JavaScript (function.js)
+
 class Employee {
     constructor(name, role) {
         this.name = name;
@@ -77,12 +79,12 @@ function generateSchedule() {
 
     for (let day = 1; day <= daysInNovember; day++) {
         const date = new Date(2024, 10, day);
-        const dayString = date.toISOString().split('T')[0];
+                const dayString = date.toISOString().split('T')[0];
 
+        // Asignar días de descanso
         const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
         console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
 
-                // Asignar 1 Domiciliario (solo uno por día)
         // Asignar 1 Domiciliario (solo uno por día)
         const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
         if (availableDeliveryPersons.length > 0) {
@@ -93,91 +95,52 @@ function generateSchedule() {
         // Filtrar Auxiliares Farmacéuticos disponibles
         const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
 
-        // Si hay exactamente 3 Auxiliares Farmacéuticos, asignar uno con turno partido
+        // Asignar turnos a Auxiliares Farmacéuticos
         if (availableAF.length === 3) {
-            // Seleccionar aleatoriamente uno para el turno partido
             const indexForPartido = Math.floor(Math.random() * availableAF.length);
             const partidoAF = availableAF[indexForPartido];
-
-            // Asignar el turno partido al AF seleccionado
             partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name));
-
-            // Asignar turnos normales a los otros dos AF
             availableAF.forEach((employee, index) => {
                 if (index !== indexForPartido) {
                     employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
                 }
             });
         } else if (availableAF.length > 3) {
-            // Si hay más de 3 AF, asignar turnos normales
             const selectedAF = availableAF.sort(() => Math.random() - 0.5).slice(0, 3);
             selectedAF.forEach(employee => {
                 employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Mañana
             });
         } else if (availableAF.length === 2) {
-            // Si hay exactamente 2 Auxiliares Farmacéuticos, asignar el turno partido a uno y el turno tarde al otro
             const selectedAF = availableAF.sort(() => Math.random() - 0.5);
             selectedAF[0].schedule.push(new Schedule(dayString, 'Turno 3', selectedAF[0].name)); // Turno partido
             selectedAF[1].schedule.push(new Schedule(dayString, 'Turno 2', selectedAF[1].name)); // Turno tarde
         } else if (availableAF.length === 1) {
-            // Si solo hay 1 Auxiliar Farmacéutico, asignar solo el turno de mañana
             availableAF[0].schedule.push(new Schedule(dayString, 'Turno 1', availableAF[0].name)); // Turno de mañana
         }
 
         // Asignar 1 Administrativo (AD) en la mañana
         const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
-        let selectedADMorning; // Inicializamos la variable aquí
+        let selectedADMorning;
         if (availableADMorning.length > 0) {
             selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
             selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
         }
 
         // Asignar 1 Administrativo (AD) en la tarde
-                // Asignar 1 Administrativo (AD) en la tarde
         const availableADAfternoon = administrators.filter(ad => !restDayEmployees.includes(ad) && ad !== selectedADMorning);
         if (availableADAfternoon.length > 0) {
             const selectedADAfternoon = availableADAfternoon[Math.floor(Math.random() * availableADAfternoon.length)];
             selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
-        } else if (availableADMorning && !restDayEmployees.includes(selectedADMorning)) {
-            // Si no hay disponibles para la tarde, asignar el turno partido al administrativo
-            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 3', selectedADMorning.name));
+        } else if (selectedADMorning && !restDayEmployees.includes(selectedADMorning)) {
+            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 3', selectedADMorning.name)); // Turno partido
         }
     }
 }
 
-// Helper function to get the name of the day
-function getDayName(date) {
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return days[date.getDay()];
-}
-
-// Inicializar el calendario
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', // Initial view of the calendar
-        events: [], // Events will be added here
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        eventClick: function(info) {
-            alert('Shift: ' + info.event.title + '\nEmployee: ' + info.event.extendedProps.employee);
-        }
-    });
-
-    calendar.render();
-    window.calendar = calendar; // Save reference to the calendar
-});
-
-// Modificar displaySchedule para usar el calendario
-// Modificar displaySchedule para usar el calendario
 function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
 
-    // Agrupar turnos por fecha
     employees.forEach(employee => {
         employee.schedule.forEach(schedule => {
             allSchedules.push({
@@ -185,58 +148,34 @@ function displaySchedule() {
                 shift: schedule.shift,
                 employee: employee.name,
                 hours: shifts.find(shift => shift.name === schedule.shift).description,
-                type: 'turno' // Tipo de evento
+                type: 'turno'
             });
         });
 
-        // Agrupar días de descanso
         employee.restDays.forEach(restDay => {
             allSchedules.push({
                 date: restDay,
                 shift: 'Descanso',
                 employee: employee.name,
                 hours: 'Día de descanso',
-                type: 'descanso' // Tipo de evento
+                type: 'descanso'
             });
         });
     });
 
-    // Ordenar los eventos por fecha
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Limpiar eventos anteriores
     window.calendar.removeAllEvents();
 
-    // Crear un conjunto para rastrear las fechas ya agregadas
-    const addedDates = new Set();
-    // Crear eventos para cada empleado en cada fecha
     allSchedules.forEach(schedule => {
-        const event = {
-            title: `${schedule.employee}: ${schedule.hours}`, // Mostrar el nombre del empleado y sus horas
+                const event = {
+            title: `${schedule.employee}: ${schedule.hours}`,
             start: schedule.date,
             extendedProps: {
                 shift: schedule.shift,
                 employee: schedule.employee,
                 hours: schedule.hours,
                 type: schedule.type
-        const eventKey = `${schedule.date}-${schedule.employee}`; // Clave única para cada evento
-        // Solo agregar el evento si no se ha agregado ya
-        if (!addedDates.has(eventKey)) {
-            const event = {
-                title: `${schedule.employee}: ${schedule.hours}`, // Mostrar el nombre del empleado y sus horas
-                start: schedule.date,
-                extendedProps: {
-                    shift: schedule.shift,
-                    employee: schedule.employee,
-                    hours: schedule.hours,
-                    type: schedule.type
-                }
-            };
-            // Asignar un color diferente para los días de descanso
-            if (schedule.type === 'descanso') {
-                event.color = 'green'; // Color para días de descanso
-            } else {
-                event.color = 'blue'; // Color para turnos
             }
         };
 
@@ -245,14 +184,14 @@ function displaySchedule() {
             event.color = 'green'; // Color para días de descanso
         } else {
             event.color = 'blue'; // Color para turnos
-            window.calendar.addEvent(event);
-            addedDates.add(eventKey); // Marcar la fecha como agregada
         }
+
         window.calendar.addEvent(event);
     });
 
     console.log("Horario mostrado en el calendario:", allSchedules);
 }
+
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
     const validRestDays = ['Lunes', 'Miércoles', 'Viernes', 'Domingo'];
@@ -264,7 +203,7 @@ function calculateRestDays() {
     };
 
     const assignedRestDays = new Set(); // Para rastrear los días de descanso asignados
-        employees.forEach(employee => {
+    employees.forEach(employee => {
         const restDays = [];
 
         // Asegúrate de que solo se asignen días de descanso válidos
@@ -338,14 +277,22 @@ function showConfirmation() {
     alert('El horario ha sido guardado exitosamente.');
 }
 
+// Inicializar el calendario
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', // Vista inicial del calendario
+        events: [], // Los eventos se agregarán aquí
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        eventClick: function(info) {
+            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employee);
+        }
+    });
 
-// Function to show a confirmation message
-function showConfirmation() {
-    alert('El horario ha sido guardado exitosamente.');
-}
-
-
-// Function to show a confirmation message
-function showConfirmation() {
-    alert('El horario ha sido guardado exitosamente.');
-}
+    calendar.render();
+    window.calendar = calendar; // Guardar referencia al calendario
+});
