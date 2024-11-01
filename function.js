@@ -115,45 +115,35 @@ function generateSchedule() {
         // Filtrar Auxiliares Farmacéuticos disponibles
         const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
 
-        // Asignar turnos a Auxiliares Farmacéuticos
-        if (availableAF.length > 0) {
-            // Si hay algún Auxiliar con descanso, asignar "Turno Partido"
-            if (restDayEmployees.some(e => e.role === 'Auxiliar Farmacéutico')) {
-                const partidoAF = availableAF[Math.floor(Math.random() * availableAF.length)];
-                partidoAF.schedule.push(new Schedule(dayString, 'Turno 3', partidoAF.name)); // Turno Partido
-                availableAF.forEach(employee => {
-                    if (employee !== partidoAF) {
-                        employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
-                    }
-                });
-            } else {
-                // Si no hay descansos, asignar 2 a la mañana y 2 a la tarde
-                const morningAF = availableAF.slice(0, 2); // Primeros 2 para la mañana
-                const afternoonAF = availableAF.slice(2, 4); // Siguientes 2 para la tarde
+        // Asignar turnos a Auxiliares Farmacéuticos y Administrativos
+        if (availableAF.length >= 4) {
+            // Asignar 2 AF a la mañana
+            const morningAF = availableAF.slice(0, 2);
+            morningAF.forEach(employee => {
+                employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
+            });
 
-                morningAF.forEach(employee => {
-                    employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
-                });
-
-                afternoonAF.forEach(employee => {
-                    employee.schedule.push(new Schedule(dayString, 'Turno 2', employee.name)); // Turno de tarde
-                });
+            // Asignar 1 AD a la mañana
+            const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
+            if (availableADMorning.length > 0) {
+                const selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
+                selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
             }
-        }
 
-        // Asignar 1 Administrativo (AD) en la mañana
-        const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
-        let selectedADMorning;
-        if (availableADMorning.length > 0) {
-            selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
-            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
-        }
+            // Asignar 2 AF a la tarde
+            const afternoonAF = availableAF.slice(2, 4);
+            afternoonAF.forEach(employee => {
+                employee.schedule.push(new Schedule(dayString, 'Turno 2', employee.name)); // Turno de tarde
+            });
 
-        // Asignar 1 Administrativo (AD) en la tarde
-        const availableADAfternoon = administrators.filter(ad => !restDayEmployees.includes(ad) && ad !== selectedADMorning);
-        if (availableADAfternoon.length > 0) {
-            const selectedADAfternoon = availableADAfternoon[Math.floor(Math.random() * availableADAfternoon.length)];
-            selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
+            // Asignar 1 AD a la tarde
+            const availableADAfternoon = administrators.filter(ad => !restDayEmployees.includes(ad) && !morningAF.includes(ad));
+            if (availableADAfternoon.length > 0) {
+                const selectedADAfternoon = availableADAfternoon[Math.floor(Math.random() * availableADAfternoon.length)];
+                selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
+            }
+        } else {
+            console.log(`No hay suficientes Auxiliares Farmacéuticos disponibles para el día ${dayString}`);
         }
     }
 }
