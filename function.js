@@ -1,5 +1,3 @@
-// JavaScript (function.js)
-
 class Employee {
     constructor(name, role) {
         this.name = name;
@@ -25,6 +23,28 @@ const shifts = [
     { name: 'Domiciliario', hours: 8, description: 'Turno de trabajo fijo (9:00 AM - 1:00 PM, 3:00 PM - 9:00 PM)' }
 ];
 
+// Inicializar el calendario
+let calendar;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', // Vista inicial del calendario
+        events: [], // Los eventos se agregarán aquí
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        eventClick: function(info) {
+            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employee);
+        }
+    });
+
+    calendar.render();
+});
+
+// Manejar el envío del formulario
 document.getElementById('configForm').addEventListener('submit', function(event) {
     event.preventDefault();
     const numEmployees = document.getElementById('numEmpleados').value;
@@ -51,7 +71,7 @@ document.getElementById('configForm').addEventListener('submit', function(event)
     displayRestDays();
 });
 
-function generateEmployees() {
+function generateEmployees(numEmployees) {
     employees.length = 0; // Reset employees array
 
     // Create 4 Auxiliares Farmacéuticos
@@ -79,7 +99,7 @@ function generateSchedule() {
 
     for (let day = 1; day <= daysInNovember; day++) {
         const date = new Date(2024, 10, day);
-                const dayString = date.toISOString().split('T')[0];
+        const dayString = date.toISOString().split('T')[0];
 
         // Asignar días de descanso
         const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
@@ -152,7 +172,7 @@ function displaySchedule() {
             });
         });
 
-        employee.restDays.forEach(restDay => {
+                employee.restDays.forEach(restDay => {
             allSchedules.push({
                 date: restDay,
                 shift: 'Descanso',
@@ -165,10 +185,11 @@ function displaySchedule() {
 
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    window.calendar.removeAllEvents();
+    // Limpiar eventos anteriores en el calendario
+    calendar.removeAllEvents();
 
     allSchedules.forEach(schedule => {
-                const event = {
+        const event = {
             title: `${schedule.employee}: ${schedule.hours}`,
             start: schedule.date,
             extendedProps: {
@@ -186,7 +207,7 @@ function displaySchedule() {
             event.color = 'blue'; // Color para turnos
         }
 
-        window.calendar.addEvent(event);
+        calendar.addEvent(event);
     });
 
     console.log("Horario mostrado en el calendario:", allSchedules);
@@ -276,23 +297,3 @@ document.getElementById('saveButton').addEventListener('click', function() {
 function showConfirmation() {
     alert('El horario ha sido guardado exitosamente.');
 }
-
-// Inicializar el calendario
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', // Vista inicial del calendario
-        events: [], // Los eventos se agregarán aquí
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        eventClick: function(info) {
-            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employee);
-        }
-    });
-
-    calendar.render();
-    window.calendar = calendar; // Guardar referencia al calendario
-});
