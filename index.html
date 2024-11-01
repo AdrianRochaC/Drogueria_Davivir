@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+    <style>
+        /* Estilos adicionales para el calendario */
+        #calendar {
+            max-width: 900px;
+            margin: 40px auto;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -79,5 +86,95 @@
     </footer>
 
     <script src="function.js"></script>
+    <script>
+        // Inicializar el calendario
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                                    left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: [], // Aquí se agregarán los eventos generados
+            eventClick: function(info) {
+                alert('Evento: ' + info.event.title);
+            }
+            });
+
+            // Manejar el envío del formulario
+            document.getElementById('configForm').addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevenir el envío del formulario
+
+                // Obtener los valores del formulario
+                const numEmpleados = document.getElementById('numEmpleados').value;
+                const turnoDiaInicio = document.getElementById('turnoDiaInicio').value;
+                const turnoDiaFin = document.getElementById('turnoDiaFin').value;
+                const turnoTardeInicio = document.getElementById('turnoTardeInicio').value;
+                const turnoTardeFin = document.getElementById('turnoTardeFin').value;
+                const turnoPartidoInicio1 = document.getElementById('turnoPartidoInicio1').value;
+                const turnoPartidoFin1 = document.getElementById('turnoPartidoFin1').value;
+                const turnoPartidoInicio2 = document.getElementById('turnoPartidoInicio2').value;
+                const turnoPartidoFin2 = document.getElementById('turnoPartidoFin2').value;
+
+                // Generar horarios y agregar eventos al calendario
+                generateSchedule(numEmpleados, {
+                    turnoDia: { inicio: turnoDiaInicio, fin: turnoDiaFin },
+                    turnoTarde: { inicio: turnoTardeInicio, fin: turnoTardeFin },
+                    turnoPartido: [
+                        { inicio: turnoPartidoInicio1, fin: turnoPartidoFin1 },
+                        { inicio: turnoPartidoInicio2, fin: turnoPartidoFin2 }
+                    ]
+                });
+
+                // Renderizar el calendario
+                calendar.render();
+            });
+
+            // Función para generar horarios
+            function generateSchedule(numEmpleados, turnos) {
+                // Limpiar eventos anteriores
+                calendar.removeAllEvents();
+
+                // Aquí puedes implementar tu lógica para generar horarios
+                // Este es un ejemplo básico para agregar eventos al calendario
+                for (let i = 0; i < numEmpleados; i++) {
+                    const empleadoNombre = `Empleado ${i + 1}`;
+                    const fechaInicio = new Date(2024, 10, 1 + i); // Noviembre, días 1 a 30
+                    const fechaFin = new Date(2024, 10, 1 + i);
+
+                    // Turno de Día
+                    calendar.addEvent({
+                        title: `${empleadoNombre} - Turno Día`,
+                        start: fechaInicio.toISOString().split('T')[0] + 'T' + turnos.turnoDia.inicio,
+                        end: fechaInicio.toISOString().split('T')[0] + 'T' + turnos.turnoDia.fin,
+                        color: 'blue'
+                    });
+
+                    // Turno de Tarde
+                    calendar.addEvent({
+                        title: `${empleadoNombre} - Turno Tarde`,
+                        start: fechaInicio.toISOString().split('T')[0] + 'T' + turnos.turnoTarde.inicio,
+                        end: fechaInicio.toISOString().split('T')[0] + 'T' + turnos.turnoTarde.fin,
+                        color: 'orange'
+                    });
+
+                    // Turno Partido
+                    for (const turno of turnos.turnoPartido) {
+                        calendar.addEvent({
+                            title: `${empleadoNombre} - Turno Partido`,
+                            start: fechaInicio.toISOString().split('T')[0] + 'T' + turno.inicio,
+                            end: fechaInicio.toISOString().split('T')[0] + 'T' + turno.fin,
+                            color: 'green'
+                        });
+                    }
+                }
+            }
+
+            // Renderizar el calendario
+            calendar.render();
+        });
+    </script>
 </body>
 </html>
