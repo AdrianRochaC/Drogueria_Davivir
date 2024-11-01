@@ -162,6 +162,7 @@ function displaySchedule() {
     const allSchedules = [];
 
     employees.forEach(employee => {
+        // Agregar turnos
         employee.schedule.forEach(schedule => {
             allSchedules.push({
                 date: schedule.date,
@@ -172,7 +173,8 @@ function displaySchedule() {
             });
         });
 
-                employee.restDays.forEach(restDay => {
+        // Agregar días de descanso
+        employee.restDays.forEach(restDay => {
             allSchedules.push({
                 date: restDay,
                 shift: 'Descanso',
