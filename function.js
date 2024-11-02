@@ -128,10 +128,13 @@ function generateSchedule() {
                 employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
             });
 
+            // Declarar selectedADMorning antes de usarlo
+            let selectedADMorning = null; // Inicializar la variable
+
             // Asignar 1 AD a la mañana de manera aleatoria
             const availableADMorning = administrators.filter(ad => !restDayEmployees.includes(ad));
             if (availableADMorning.length > 0) {
-                const selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
+                selectedADMorning = availableADMorning[Math.floor(Math.random() * availableADMorning.length)];
                 selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
             }
 
