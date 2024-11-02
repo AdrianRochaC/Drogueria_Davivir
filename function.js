@@ -199,15 +199,7 @@ function displaySchedule() {
         });
 
         // No agregar días de descanso al calendario
-        // employee.restDays.forEach(restDay => {
-        //     allSchedules.push({
-        //         date: restDay,
-        //         shift: 'Descanso',
-        //         employee: employee.name,
-        //         hours: 'Día de descanso',
-        //         type: 'descanso'
-        //     });
-        // });
+        // No se agrega nada para los días de descanso
     });
 
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -227,12 +219,7 @@ function displaySchedule() {
             }
         };
 
-        // Asignar un color diferente para los días de descanso
-        if (schedule.type === 'descanso') {
-            event.color = 'green'; // Color para días de descanso
-        } else {
-            event.color = 'blue'; // Color para turnos
-        }
+        event.color = 'blue'; // Color para turnos
 
         calendar.addEvent(event);
     });
