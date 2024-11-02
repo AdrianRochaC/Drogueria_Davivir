@@ -158,7 +158,6 @@ function generateSchedule() {
         }
     }
 }
-
 function calculateRestDays() {
     console.log("Calculando días de descanso...");
 
