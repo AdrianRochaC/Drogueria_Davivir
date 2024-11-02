@@ -162,31 +162,23 @@ function calculateRestDays() {
     console.log("Calculando días de descanso...");
 
     // Días válidos para descanso
-    const weekdays = ['Lunes', 'Miércoles', 'Viernes']; // Solo estos días entre semana
-    const sundays = ['Domingo'];
+    const validRestDays = [
+        new Date(2024, 10, 2), // Ejemplo de fechas específicas
+        new Date(2024, 10, 9),
+        new Date(2024, 10, 16),
+        new Date(2024, 10, 23),
+        new Date(2024, 10, 30)
+    ];
 
     employees.forEach(employee => {
-        const restDays = [];
+        // Seleccionar un día de descanso aleatorio de las fechas válidas
+        const randomIndex = Math.floor(Math.random() * validRestDays.length);
+        const restDay = validRestDays[randomIndex].toISOString().split('T')[0]; // Formato YYYY-MM-DD
 
-        if (employee.role === 'Auxiliar Farmacéutico') {
-            // Asignar un día de descanso entre semana (Lunes, Miércoles o Viernes)
-            const randomWeekday = weekdays[Math.floor(Math.random() * weekdays.length)];
-            restDays.push(randomWeekday);
-            // Asignar un domingo
-            restDays.push('Domingo');
-        } else if (employee.role === 'Administrativo') {
-            // Asignar dos domingos
-            restDays.push('Domingo'); // Primer domingo
-            restDays.push('Domingo'); // Segundo domingo
-        }
+        console.log(`Empleado: ${employee.name}, Día de descanso: ${restDay}`);
 
-        // Eliminar duplicados (en el caso de los Administrativos)
-        const uniqueRestDays = [...new Set(restDays)];
-
-        console.log(`Empleado: ${employee.name}, Días de descanso: ${uniqueRestDays.join(', ')}`);
-
-        // Asignar los días de descanso al empleado
-        employee.restDays = uniqueRestDays;
+        // Asignar el día de descanso al empleado
+        employee.restDays = [restDay]; // Solo un día de descanso
     });
 }
 
@@ -206,16 +198,16 @@ function displaySchedule() {
             });
         });
 
-        // Agregar días de descanso
-        employee.restDays.forEach(restDay => {
-            allSchedules.push({
-                date: restDay,
-                shift: 'Descanso',
-                employee: employee.name,
-                hours: 'Día de descanso',
-                type: 'descanso'
-            });
-        });
+        // No agregar días de descanso al calendario
+        // employee.restDays.forEach(restDay => {
+        //     allSchedules.push({
+        //         date: restDay,
+        //         shift: 'Descanso',
+        //         employee: employee.name,
+        //         hours: 'Día de descanso',
+        //         type: 'descanso'
+        //     });
+        // });
     });
 
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
