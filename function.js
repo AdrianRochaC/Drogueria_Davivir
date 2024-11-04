@@ -244,7 +244,7 @@ function displaySchedule() {
                 }
             };
 
-            restEvent.color = 'orange'; // Color para días de descanso
+            restEvent.color = 'red'; // Color para días de descanso
 
             calendar.addEvent(restEvent);
         });
