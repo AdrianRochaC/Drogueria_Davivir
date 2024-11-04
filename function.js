@@ -198,6 +198,10 @@ function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
 
+    // Limpiar eventos anteriores en el calendario
+    calendar.removeAllEvents();
+
+    // Agregar turnos al calendario
     employees.forEach(employee => {
         // Agregar turnos
         employee.schedule.forEach(schedule => {
@@ -211,10 +215,6 @@ function displaySchedule() {
         });
     });
 
-    // Limpiar eventos anteriores en el calendario
-    calendar.removeAllEvents();
-
-    // Agregar turnos al calendario
     allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
     allSchedules.forEach(schedule => {
         const event = {
@@ -244,7 +244,7 @@ function displaySchedule() {
                 }
             };
 
-            restEvent.color = 'pink'; // Color para días de descanso
+            restEvent.color = 'green'; // Color para días de descanso
 
             calendar.addEvent(restEvent);
         });
@@ -252,6 +252,7 @@ function displaySchedule() {
 
     console.log("Horario mostrado en el calendario:", allSchedules);
 }
+
 function displayRestDays() {
     console.log("Mostrando días de descanso...");
     const descansosBody = document.getElementById('descansosBody');
