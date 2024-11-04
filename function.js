@@ -193,6 +193,7 @@ function calculateRestDays() {
         employee.restDays.push(formattedRestDay); // Asignar el día de descanso al empleado
     });
 }
+
 function displaySchedule() {
     console.log("Mostrando horario...");
     const allSchedules = [];
@@ -208,16 +209,13 @@ function displaySchedule() {
                 type: 'turno'
             });
         });
-
-        // No agregar días de descanso al calendario
-        // No se agrega nada para los días de descanso
     });
-
-    allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // Limpiar eventos anteriores en el calendario
     calendar.removeAllEvents();
 
+    // Agregar turnos al calendario
+    allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
     allSchedules.forEach(schedule => {
         const event = {
             title: `${schedule.employee}: ${schedule.hours}`,
@@ -235,9 +233,25 @@ function displaySchedule() {
         calendar.addEvent(event);
     });
 
+    // Agregar días de descanso al calendario
+    employees.forEach(employee => {
+        employee.restDays.forEach(restDay => {
+            const restEvent = {
+                title: `${employee.name}: Día de descanso`,
+                start: restDay,
+                extendedProps: {
+                    type: 'descanso'
+                }
+            };
+
+            restEvent.color = 'pink'; // Color para días de descanso
+
+            calendar.addEvent(restEvent);
+        });
+    });
+
     console.log("Horario mostrado en el calendario:", allSchedules);
 }
-
 function displayRestDays() {
     console.log("Mostrando días de descanso...");
     const descansosBody = document.getElementById('descansosBody');
