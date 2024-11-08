@@ -90,20 +90,30 @@ function generateEmployees(numEmployees) {
     }
 }
 
-function generateSchedule() {
-    console.log("Generando horario...");
-    const daysInNovember = 30;
+// Nueva función para generar el horario para un mes específico
+function generateScheduleForMonth(year, month) {
+    console.log(`Generando horario para ${month + 1}/${year}...`);
+    
+    // Limpiar el horario actual
+    employees.forEach(employee => {
+        employee.schedule = [];
+        employee.restDays = [];
+    });
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate(); // Obtener el número de días en el mes
     const deliveryPersons = employees.filter(employee => employee.role === 'Domiciliario');
     const auxiliaries = employees.filter(employee => employee.role === 'Auxiliar Farmacéutico');
     const administrators = employees.filter(employee => employee.role === 'Administrativo');
-
-    for (let day = 1; day <= daysInNovember; day++) {
-        const date = new Date(2024, 10, day);
+    
+ // Asignar días de descanso y turnos
+    calculateRestDaysForMonth(year, month, daysInMonth);
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
         const dayString = date.toISOString().split('T')[0];
 
         // Asignar días de descanso
         const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
-        console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
 
         // Asignar 1 Domiciliario (solo uno por día)
         const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
@@ -138,8 +148,6 @@ function generateSchedule() {
             afternoonAF.forEach(employee => {
                 employee.schedule.push(new Schedule(dayString, 'Turno 2', employee.name)); // Turno de tarde
             });
-        } else {
-            console.log(`No hay suficientes Auxiliares Farmacéuticos disponibles para el día ${dayString}`);
         }
 
         // Asignar Administrativos
@@ -158,12 +166,18 @@ function generateSchedule() {
         }
     }
 }
-function calculateRestDays() {
-    console.log("Calculando días de descanso...");
 
-    const totalDays = 30; // Total de días en noviembre
-    const validDays = Array.from({ length: totalDays }, (_, i) => i + 1); // Crear un array de días del 1 al 30
-    const restDaysAssignedAF = []; // Para llevar un registro de los días de descanso asignados a AF
+// Nueva función para calcular días de descanso para el mes actual
+function calculateRestDaysForMonth(year, month, daysInMonth) {
+    console.log("Calculando días de descanso para el mes...");
+
+    // Limpiar días de descanso anteriores
+    employees.forEach(employee => {
+        employee.restDays = [];
+    });
+
+    const totalDays = daysInMonth; // Total de días en el mes
+    const validDays = Array.from({ length: totalDays }, (_, i) => i + 1); // Crear un array de días del 1 al total
 
     // Asignar días de descanso a Auxiliares Farmacéuticos
     const auxiliaries = employees.filter(employee => employee.role === 'Auxiliar Farmacéutico');
@@ -173,12 +187,11 @@ function calculateRestDays() {
         do {
             const randomIndex = Math.floor(Math.random() * validDays.length);
             restDay = validDays[randomIndex]; // Seleccionar un día aleatorio
-        } while (restDaysAssignedAF.includes(restDay)); // Asegurarse de que no se repita el día
+        } while (employee.restDays.includes(`2024-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`)); // Asegurarse de que no se repita el día
 
-        const formattedRestDay = `2024-11-${String(restDay).padStart(2, '0')}`; // Formato YYYY-MM-DD
+        const formattedRestDay = `${year}-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`; // Formato YYYY-MM-DD
         console.log(`Empleado: ${employee.name}, Día de descanso: ${formattedRestDay}`);
         employee.restDays.push(formattedRestDay); // Asignar el día de descanso al empleado
-        restDaysAssignedAF.push(restDay); // Marcar el día como asignado
         validDays.splice(validDays.indexOf(restDay), 1); // Eliminar el día asignado de la lista de días válidos
     });
 
@@ -186,9 +199,11 @@ function calculateRestDays() {
     const administrators = employees.filter(employee => employee.role === 'Administrativo');
     administrators.forEach(employee => {
         let restDay;
-        const randomIndex = Math.floor(Math.random() * totalDays) + 1; // Generar un día aleatorio entre 1 y 30
-        restDay = randomIndex; // Seleccionar un día aleatorio
-        const formattedRestDay = `2024-11-${String(restDay).padStart(2, '0')}`; // Formato YYYY-MM-DD
+        do {
+            restDay = Math.floor(Math.random() * totalDays) + 1; // Generar un día aleatorio entre 1 y totalDays
+        } while (employee.restDays.includes(`2024-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`)); // Asegurarse de que no se repita el día
+
+        const formattedRestDay = `${year}-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`; // Formato YYYY-MM-DD
         console.log(`Empleado: ${employee.name}, Día de descanso: ${formattedRestDay}`);
         employee.restDays.push(formattedRestDay); // Asignar el día de descanso al empleado
     });
