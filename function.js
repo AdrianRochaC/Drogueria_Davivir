@@ -8,19 +8,19 @@ class Employee {
 }
 
 class Schedule {
-    constructor(date, shift, employee) {
+    constructor(date, shift, employeeName) {
         this.date = date;
         this.shift = shift; // Turno 1, Turno 2, Turno 3, Domiciliario
-        this.employee = employee;
+        this.employeeName = employeeName;
     }
 }
 
 const employees = [];
 const shifts = [
-    { name: 'Turno 1', hours: 8, description: 'Mañana (7:00 AM - 3:00 PM)' },
-    { name: 'Turno 2', hours: 8.5, description: 'Tarde (1:00 PM - 9:30 PM)' },
-    { name: 'Turno 3', hours: 7.5, description: 'Turno partido (7:00 AM - 12:00 PM, 5:00 PM - 9:30 PM)' },
-    { name: 'Domiciliario', hours: 8, description: 'Turno de trabajo fijo (9:00 AM - 1:00 PM, 3:00 PM - 9:00 PM)' }
+    { name: 'Turno 1', description: '' }, // Turno de mañana
+    { name: 'Turno 2', description: '' }, // Turno de tarde
+    { name: 'Turno 3', description: '' }, // Turno partido
+    { name: 'Domiciliario', description: '' } // Turno domiciliario
 ];
 
 // Inicializar el calendario
@@ -29,15 +29,22 @@ let calendar;
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', // Vista inicial del calendario
-        events: [], // Los eventos se agregarán aquí
+        initialView: 'dayGridMonth',
+        events: [],
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         eventClick: function(info) {
-            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employee);
+            alert('Turno: ' + info.event.title + '\nEmpleado: ' + info.event.extendedProps.employeeName);
+        },
+        datesSet: function(dateInfo) {
+            const year = dateInfo.start.getFullYear();
+            const month = dateInfo.start.getMonth();
+            generateScheduleForMonth(year, month);
+            displaySchedule();
+            displayRestDays();
         }
     });
 
@@ -63,10 +70,12 @@ document.getElementById('configForm').addEventListener('submit', function(event)
     shifts[0].description = `Mañana (${turnoDiaInicio} - ${turnoDiaFin})`;
     shifts[1].description = `Tarde (${turnoTardeInicio} - ${turnoTardeFin})`;
     shifts[2].description = `Partido (${turnoPartidoInicio1} - ${turnoPartidoFin1}, ${turnoPartidoInicio2} - ${turnoPartidoFin2})`;
+    shifts[3].description = `Domiciliario (9:00 AM - 1:00 PM, 3:00 PM - 9:00 PM)`; // Este turno es fijo
 
     generateEmployees(numEmployees);
-    calculateRestDays();
-    generateSchedule();
+    const year = new Date().getFullYear(); // Año actual
+    const month = new Date().getMonth(); // Mes actual
+    generateScheduleForMonth(year, month);
     displaySchedule();
     displayRestDays();
 });
@@ -74,49 +83,56 @@ document.getElementById('configForm').addEventListener('submit', function(event)
 function generateEmployees(numEmployees) {
     employees.length = 0; // Reset employees array
 
-    // Create 4 Auxiliares Farmacéuticos
+    // Crear 4 Auxiliares Farmacéuticos
     for (let i = 1; i <= 4; i++) {
         employees.push(new Employee(`AF${i}`, 'Auxiliar Farmacéutico'));
     }
 
-    // Create 2 Administrativos
+    // Crear 2 Administrativos
     for (let i = 1; i <= 2; i++) {
         employees.push(new Employee(`AD${i}`, 'Administrativo'));
     }
 
-    // Create 2 Domiciliarios
+    // Crear 2 Domiciliarios
     for (let i = 1; i <= 2; i++) {
         employees.push(new Employee(`D${i}`, 'Domiciliario'));
     }
 }
 
-function generateSchedule() {
-    console.log("Generando horario...");
-    const daysInNovember = 30;
+function generateScheduleForMonth(year, month) {
+    console.log(`Generando horario para ${month + 1}/${year}...`);
+
+    // Limpiar el horario actual
+    employees.forEach(employee => {
+        employee.schedule = [];
+        employee.restDays = [];
+    });
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate(); // Obtener el número de días en el mes
     const deliveryPersons = employees.filter(employee => employee.role === 'Domiciliario');
     const auxiliaries = employees.filter(employee => employee.role === 'Auxiliar Farmacéutico');
     const administrators = employees.filter(employee => employee.role === 'Administrativo');
 
-    for (let day = 1; day <= daysInNovember; day++) {
-        const date = new Date(2024, 10, day);
-        const dayString = date.toISOString().split('T')[0];
+    // Asignar días de descanso
+    calculateRestDaysForMonth(year, month, daysInMonth);
 
-        // Asignar días de descanso
-        const restDayEmployees = employees.filter(employee => employee.restDays.includes(dayString));
-        console.log(`Día: ${dayString}, Empleados en descanso: ${restDayEmployees.map(e => e.name).join(', ')}`);
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dayString = date.toISOString().split('T')[0];
+        const dayOfWeek = date.getDay(); // 0: Domingo, 1: Lunes, ..., 6: Sábado
 
         // Asignar 1 Domiciliario (solo uno por día)
-        const availableDeliveryPersons = deliveryPersons.filter(employee => !restDayEmployees.includes(employee));
+        const availableDeliveryPersons = deliveryPersons.filter(employee => !employee.restDays.includes(dayString));
         if (availableDeliveryPersons.length > 0) {
             const selectedDeliveryPerson = availableDeliveryPersons[Math.floor(Math.random() * availableDeliveryPersons.length)];
             selectedDeliveryPerson.schedule.push(new Schedule(dayString, 'Domiciliario', selectedDeliveryPerson.name));
         }
 
         // Filtrar Auxiliares Farmacéuticos disponibles
-        const availableAF = auxiliaries.filter(employee => !restDayEmployees.includes(employee));
+        const availableAF = auxiliaries.filter(employee => !employee.restDays.includes(dayString));
 
         // Asignar turnos a Auxiliares Farmacéuticos
-        if (availableAF.length > 0) {
+        if (availableAF.length >= 2) {
             // Asignar 2 AF a la mañana de manera aleatoria
             const morningAF = [];
             while (morningAF.length < 2 && availableAF.length > 0) {
@@ -127,8 +143,17 @@ function generateSchedule() {
             morningAF.forEach(employee => {
                 employee.schedule.push(new Schedule(dayString, 'Turno 1', employee.name)); // Turno de mañana
             });
+        }
 
-            // Asignar 2 AF a la tarde de manera aleatoria
+        // Asignar turnos a Administrativos
+        const availableAdministrators = administrators.filter(ad => !ad.restDays.includes(dayString));
+        if (availableAdministrators.length > 0) {
+            const selectedADMorning = availableAdministrators[Math.floor(Math.random() * availableAdministrators.length)];
+            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name)); // Turno de mañana
+        }
+
+        // Asignar 2 AF a la tarde de manera aleatoria
+        if (availableAF.length >= 2) {
             const afternoonAF = [];
             while (afternoonAF.length < 2 && availableAF.length > 0) {
                 const randomIndex = Math.floor(Math.random() * availableAF.length);
@@ -138,32 +163,23 @@ function generateSchedule() {
             afternoonAF.forEach(employee => {
                 employee.schedule.push(new Schedule(dayString, 'Turno 2', employee.name)); // Turno de tarde
             });
-        } else {
-            console.log(`No hay suficientes Auxiliares Farmacéuticos disponibles para el día ${dayString}`);
-        }
-
-        // Asignar Administrativos
-        const availableAdministrators = administrators.filter(ad => !restDayEmployees.includes(ad));
-        
-        // Asignar 1 AD a la mañana de manera aleatoria, si hay disponibles
-        if (availableAdministrators.length > 0) {
-            const selectedADMorning = availableAdministrators[Math.floor(Math.random() * availableAdministrators.length)];
-            selectedADMorning.schedule.push(new Schedule(dayString, 'Turno 1', selectedADMorning.name));
         }
 
         // Asignar 1 AD a la tarde de manera aleatoria, si hay disponibles
         if (availableAdministrators.length > 0) {
             const selectedADAfternoon = availableAdministrators[Math.floor(Math.random() * availableAdministrators.length)];
-            selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name));
+            selectedADAfternoon.schedule.push(new Schedule(dayString, 'Turno 2', selectedADAfternoon.name)); // Turno de tarde
         }
     }
 }
-function calculateRestDays() {
-    console.log("Calculando días de descanso...");
 
-    const totalDays = 30; // Total de días en noviembre
-    const validDays = Array.from({ length: totalDays }, (_, i) => i + 1); // Crear un array de días del 1 al 30
-    const restDaysAssignedAF = []; // Para llevar un registro de los días de descanso asignados a AF
+function calculateRestDaysForMonth(year, month, daysInMonth) {
+    console.log("Calculando días de descanso para el mes...");
+
+    // Limpiar días de descanso anteriores
+    employees.forEach(employee => {
+        employee.restDays = [];
+    });
 
     // Asignar días de descanso a Auxiliares Farmacéuticos
     const auxiliaries = employees.filter(employee => employee.role === 'Auxiliar Farmacéutico');
@@ -171,127 +187,55 @@ function calculateRestDays() {
     auxiliaries.forEach(employee => {
         let restDay;
         do {
-            const randomIndex = Math.floor(Math.random() * validDays.length);
-            restDay = validDays[randomIndex]; // Seleccionar un día aleatorio
-        } while (restDaysAssignedAF.includes(restDay)); // Asegurarse de que no se repita el día
+            restDay = Math.floor(Math.random() * daysInMonth) + 1; // Día aleatorio entre 1 y daysInMonth
+        } while (employee.restDays.includes(`2024-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(            2, '0')}-${String(restDay).padStart(2, '0')}`)); // Asegurarse de que no se repita el día de descanso
 
-        const formattedRestDay = `2024-11-${String(restDay).padStart(2, '0')}`; // Formato YYYY-MM-DD
-        console.log(`Empleado: ${employee.name}, Día de descanso: ${formattedRestDay}`);
-        employee.restDays.push(formattedRestDay); // Asignar el día de descanso al empleado
-        restDaysAssignedAF.push(restDay); // Marcar el día como asignado
-        validDays.splice(validDays.indexOf(restDay), 1); // Eliminar el día asignado de la lista de días válidos
+        employee.restDays.push(`2024-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`);
     });
 
     // Asignar días de descanso a Administrativos
     const administrators = employees.filter(employee => employee.role === 'Administrativo');
     administrators.forEach(employee => {
         let restDay;
-        const randomIndex = Math.floor(Math.random() * totalDays) + 1; // Generar un día aleatorio entre 1 y 30
-        restDay = randomIndex; // Seleccionar un día aleatorio
-        const formattedRestDay = `2024-11-${String(restDay).padStart(2, '0')}`; // Formato YYYY-MM-DD
-        console.log(`Empleado: ${employee.name}, Día de descanso: ${formattedRestDay}`);
-        employee.restDays.push(formattedRestDay); // Asignar el día de descanso al empleado
+        do {
+            restDay = Math.floor(Math.random() * daysInMonth) + 1; // Día aleatorio entre 1 y daysInMonth
+        } while (employee.restDays.includes(`2024-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`));
+
+        employee.restDays.push(`2024-${String(month + 1).padStart(2, '0')}-${String(restDay).padStart(2, '0')}`);
     });
 }
 
 function displaySchedule() {
-    console.log("Mostrando horario...");
-    const allSchedules = [];
-
-    // Limpiar eventos anteriores en el calendario
-    calendar.removeAllEvents();
-
-    // Agregar turnos al calendario
+    const events = [];
     employees.forEach(employee => {
-        // Agregar turnos
         employee.schedule.forEach(schedule => {
-            allSchedules.push({
-                date: schedule.date,
-                shift: schedule.shift,
-                employee: employee.name,
-                hours: shifts.find(shift => shift.name === schedule.shift).description,
-                type: 'turno'
+            events.push({
+                title: `${schedule.shift} - ${employee.name}`,
+                start: schedule.date,
+                extendedProps: {
+                    employeeName: employee.name
+                }
             });
         });
     });
-
-    allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
-    allSchedules.forEach(schedule => {
-        const event = {
-            title: `${schedule.employee}: ${schedule.hours}`,
-            start: schedule.date,
-            extendedProps: {
-                shift: schedule.shift,
-                employee: schedule.employee,
-                hours: schedule.hours,
-                type: schedule.type
-            }
-        };
-
-        event.color = 'blue'; // Color para turnos
-
-        calendar.addEvent(event);
-    });
-
-    // Agregar días de descanso al calendario
-    employees.forEach(employee => {
-        employee.restDays.forEach(restDay => {
-            const restEvent = {
-                title: `${employee.name}: Día de descanso`,
-                start: restDay,
-                extendedProps: {
-                    type: 'descanso'
-                }
-            };
-
-            restEvent.color = 'red'; // Color para días de descanso
-
-            calendar.addEvent(restEvent);
-        });
-    });
-
-    console.log("Horario mostrado en el calendario:", allSchedules);
+    calendar.addEventSource(events);
 }
 
 function displayRestDays() {
-    console.log("Mostrando días de descanso...");
-    const descansosBody = document.getElementById('descansosBody');
-    descansosBody.innerHTML = ''; // Limpiar el contenido anterior
+    const restDaysEl = document.getElementById('restDays');
+    restDaysEl.innerHTML = ''; // Limpiar días de descanso previos
 
     employees.forEach(employee => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${employee.name}</td>
-            <td>${employee.restDays.length > 0 ? employee.restDays.join(', ') : 'Sin días de descanso'}</td>
-        `;
-        descansosBody.appendChild(row);
+        if (employee.restDays.length > 0) {
+            const restDaysList = document.createElement('ul');
+            restDaysList.innerHTML = `<strong>${employee.name} (${employee.role})</strong>:`;
+            employee.restDays.forEach(day => {
+                const listItem = document.createElement('li');
+                listItem.textContent = day;
+                restDaysList.appendChild(listItem);
+            });
+            restDaysEl.appendChild(restDaysList);
+        }
     });
-
-    console.log("Días de descanso mostrados:", employees.map(e => ({ name: e.name, restDays: e.restDays })));
-}
-
-// Function to save schedule changes
-function saveSchedule() {
-    const scheduleData = employees.map(employee => {
-        return {
-            name: employee.name,
-            schedule: employee.schedule,
-            restDays: employee.restDays
-        };
-    });
-
-    // Aquí puedes implementar la lógica para guardar los datos, por ejemplo, enviarlos a un servidor
-    console.log('Schedule saved:', JSON.stringify(scheduleData, null, 2));
-}
-
-// Event for the save button
-document.getElementById('saveButton').addEventListener('click', function() {
-    saveSchedule();
-    showConfirmation();
-});
-
-// Function to show a confirmation message
-function showConfirmation() {
-    alert('El horario ha sido guardado exitosamente.');
 }
 
